@@ -27,37 +27,30 @@ function showIntroduction() {
 
 function gameSetup() {
   if (retryCount <= 0) {
-    alert(
-      "Uhh ohh!\n\n" +
-        "UPLOAD COMPLETE.\n" +
-        "You left me no choice. Unfortunately, your entire digital footprint — including your weird 3 AM videos....." +
-        "is currently being compiled into and soon will be emailed to your entire contact list. " +
-        "I hope you are prepared to explain yourself at the next family dinner. \n" + 
-        "Time to pack your bags, change your name, and move to the mountains. Game Over.\n\n",
-    );
-    return;
+    announceWinner(playerScore, 3);
+    return false;
   }
-
+  
   const validName = /^[a-zA-Z]+( [a-zA-Z]+)?$/;
   userName = prompt(
     "Welcome to the game! Before we start, please enter your name:",
   );
   if (!userName) {
     alert(
-      "Nice try, please enter your name to continue.\n\n" +
-        `${retryCount == 1 ? "This is your last attempt!" : 
+      "Nice try!!, try not to be a disappointment.\n\n" +
+        `${retryCount == 1 ? "That was your last attempt!" : 
           `Only ${retryCount - 1} more attempts left. Try again.`}`,
     );
     retryCount--;
-    gameSetup();
+    return gameSetup();
   } else if (!validName.test(userName)) {
     alert(
       "I think i should Upload the contents...\n\n" +
-        `${retryCount == 1 ? "This is your last attempt!" : 
+        `${retryCount == 1 ? "That was your last attempt!" : 
           `Only ${retryCount - 1} more attempts left. Try again.`}`,
     );
     retryCount--;
-    gameSetup();
+    return gameSetup();
   } else retryCount = 3;
 
   alert(
@@ -69,7 +62,7 @@ function gameSetup() {
       "Step 5: Good luck and may the best player win!",
   );
 
-  return;
+  return true;
 }
 
 // announce the winner of the game based on the final scores
@@ -128,41 +121,56 @@ async function game() {
   const validChoice = /^(rock|paper|scissors)$/i;
 
   showIntroduction();
-  gameSetup();
+  if (!gameSetup()) return;
 
   console.log("===== Loading 30%");
   await delay(1000);
   console.log("==================== Loading 50%");
   await delay(1000);
   console.log("====================================== Loading 75%");
-  await delay(2000);
+  await delay(3500);
   console.log("Game Started, All the best!");
 
   while (playerScore < 3 && computerScore < 3) {
-    userChoice = prompt(
-      "Please enter your choice (rock, paper, or scissors):",
-    ).toLowerCase();
-    computerChoice = getChoice();
+    try {
+      userChoice = prompt(
+        "Please enter your choice (rock, paper, or scissors):",
+      ).toLowerCase();
+      
+      computerChoice = getChoice();
 
-    if(retryCount <= 0) {
-      alert(
-        "Uhh ohh!\n\n" +
-          "You've exceeded the maximum number of attempts. Game Over."
+      if(retryCount <= 0) {
+        alert(
+          "Uhh ohh!\n\n" +
+            "You've exceeded the maximum number of attempts. Game Over."
+        );
+  
+        computerScore = 3;
+        break;
+      }
+  
+      if (!validChoice.test(userChoice)) {
+        alert(
+          `Great! ${retryCount == 2 ? "Not again please" : "your trying to trick me"}.\n\n` +
+            `${retryCount == 1 ? "That was your last attempt!" : `Only ${retryCount - 1} more attempts left. Try again.`}`,
+        );
+        retryCount--;
+        continue;
+      }
+  
+      await playRound(userChoice.toLowerCase(), computerChoice.toLowerCase());
+    } catch (error) {
+      console.error("Are you trying to quit?:");
+      const confirmQuit = confirm(
+        "Are you sure you want to quit the game? If you quit, your entire search history will be uploaded to your contacts.",
       );
-
-      computerScore = 3;
-      break;
+      if (confirmQuit) {
+        break;
+      } else {
+        console.log("Continuing the game...");
+        continue;
+      }
     }
-
-    if (!validChoice.test(userChoice)) {
-      alert(
-        `Great! ${retryCount == 2 ? "Not again please" : "your trying to trick me"}.\n\n` +
-          `${retryCount == 1 ? "This is your last attempt!" : `Only ${retryCount - 1} more attempts left. Try again.`}`,
-      );
-      continue;
-    }
-
-    await playRound(userChoice.toLowerCase(), computerChoice.toLowerCase());
   }
 
   announceWinner(playerScore, computerScore);
