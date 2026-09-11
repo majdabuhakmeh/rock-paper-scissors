@@ -6,7 +6,7 @@
 
  Play the live project on GitHub Pages:
 
- [Open the live preview](https://majdabuhakmeh.io/rock-paper-scissors/)
+ [Open the live preview](https://majdabuhakmeh.github.io/rock-paper-scissors/)
 
  ## Features
 
