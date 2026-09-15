@@ -8,11 +8,10 @@ let userChoice = "";
 let computerChoice = "";
 let retryCount = 3;
 
-const getChoice = () => choices[Math.floor(Math.random() * choices.length)];
-
-function showIntroduction() {
-  alert(
-    "SYSTEM BREACH DETECTED\n\n" +
+function showIntroduction(showInstructions = false) {
+  if (!showInstructions) {
+    alert(
+      "SYSTEM BREACH DETECTED\n\n" +
       "I am SNITCH-BOT, an incredibly judgmental AI security system.\n\n" +
       "I have successfully hacked into your browser and downloaded your entire awkward, unfiltered search history. " +
       "I have locked this highly sensitive data inside a heavily encrypted digital vault.\n\n" +
@@ -22,46 +21,67 @@ function showIntroduction() {
       "If I win, I broadcast your search history directly to your LinkedIn network and your family group chat.\n\n" +
       "Before we begin: follow the instruction carefully. \n" +
       "Click OK if you think you can beat me.",
-  );
+    );
+  } else {
+    alert(
+      `Welcome, ${userName}! Let's begin the game.\n\n` +
+        "Step 1: To play the game, open the console \n" +
+        "Step 2: Press F12 or right-click this page and choose Inspect, then click the Console tab. \n" +
+        "Step 3: In the console, type 'rock', 'paper', or 'scissors' to make your choice for each round. \n" +
+        "Step 4: The game will continue until either you or SNITCH-BOT wins 3 rounds. \n" +
+        "Step 5: Good luck and may the best player win!",
+    );
+  }
 }
 
-function gameSetup() {
-  if (retryCount <= 0) {
-    announceWinner(playerScore, 3);
-    return false;
+function resetGame() {
+  playerScore = 0;
+  computerScore = 0;
+  retryCount = 3;
+}
+
+function quitGame() {
+  const confirmQuit = confirm(
+    "Are you sure you want to quit the game? If you quit, you lose.",
+  );
+  if (confirmQuit) {
+    computerScore = 3;
+    announceWinner(playerScore, computerScore);
+    resetGame();
   }
-  
+  return confirmQuit;
+}
+
+function playerSetup() {
+  if (retryCount <= 0) {
+    retryCount = 3;
+    return announceWinner(playerScore, 3);
+  }
+
   const validName = /^[a-zA-Z]+( [a-zA-Z]+)?$/;
-  userName = prompt(
+  const nameInput = prompt(
     "Welcome to the game! Before we start, please enter your name:",
   );
-  if (!userName) {
-    alert(
-      "Nice try!!, try not to be a disappointment.\n\n" +
-        `${retryCount == 1 ? "That was your last attempt!" : 
-          `Only ${retryCount - 1} more attempts left. Try again.`}`,
-    );
+
+  if (nameInput === null) {
+    if (quitGame()) return false;
+    return playerSetup();
+  }
+
+  userName = nameInput.trim();
+
+  if(!userName) {
+    alert("Please enter a name to continue.");
     retryCount--;
-    return gameSetup();
+    return playerSetup();
   } else if (!validName.test(userName)) {
-    alert(
-      "I think i should Upload the contents...\n\n" +
-        `${retryCount == 1 ? "That was your last attempt!" : 
-          `Only ${retryCount - 1} more attempts left. Try again.`}`,
-    );
+    alert("Please enter a valid name to continue. \n\n" +
+      "for example, 'John Doe' or 'Jane'.");
     retryCount--;
-    return gameSetup();
-  } else retryCount = 3;
+    return playerSetup();
+  }
 
-  alert(
-    `Welcome, ${userName}! Let's begin the game.\n\n` +
-      "Step 1: To play the game, open the console \n" +
-      "Step 2: Press F12 or right-click this page and choose Inspect, then click the Console tab. \n" +
-      "Step 3: In the console, type 'rock', 'paper', or 'scissors' to make your choice for each round. \n" +
-      "Step 4: The game will continue until either you or SNITCH-BOT wins 3 rounds. \n" +
-      "Step 5: Good luck and may the best player win!",
-  );
-
+  retryCount = 3;
   return true;
 }
 
@@ -89,88 +109,86 @@ function announceWinner(playerScore, computerScore) {
   }
 }
 
-async function playRound(userChoice, computerChoice) {
+function playerChoice() {
+  if (retryCount <= 0) {
+    retryCount = 3;
+    announceWinner(playerScore, 3);
+    return false;
+  }
+
+  const validChoice = /^(rock|paper|scissor)$/i;
+  const choiceInput = prompt(
+    "Please enter your choice (rock, paper, or scissor):",
+  );
+
+  if (choiceInput === null) {
+    if (quitGame()) return false;
+    return playerChoice();
+  }
+
+  userChoice = choiceInput.trim().toLowerCase();
+
+  if(!userChoice) {
+    alert("Please enter a choice to play (rock, paper, or scissor).");
+    retryCount--;
+    return playerChoice();
+  } else if (!validChoice.test(userChoice)) {
+    alert(`you chose ${userChoice}` + " Please enter a valid choice to continue. \n\n" +
+      "for example, 'rock', 'paper', or 'scissor'.");
+    retryCount--;
+    return playerChoice();
+  }
+
+  retryCount = 3;
+  return true;
+}
+
+const getComputerChoice = () => choices[Math.floor(Math.random() * choices.length)];
+
+function playRound(userChoice, computerChoice) {
   if (userChoice === computerChoice) {
     console.log(`Round ${gameRound}: It's a tie! Both chose ${userChoice}.`);
-    await delay(1500);
   } else if (
-    (userChoice === "rock" && computerChoice === "scissors") ||
+    (userChoice === "rock" && computerChoice === "scissor") ||
     (userChoice === "paper" && computerChoice === "rock") ||
-    (userChoice === "scissors" && computerChoice === "paper")
+    (userChoice === "scissor" && computerChoice === "paper")
   ) {
     playerScore++;
     gameRound++;
     console.log(
       `Round ${gameRound}: You win! ${userChoice} beats ${computerChoice}.`,
     );
-    await delay(1500);
   } else {
     computerScore++;
     gameRound++;
     console.log(
       `Round ${gameRound}: You lose! ${computerChoice} beats ${userChoice}.`,
     );
-    await delay(1500);
   }
 }
 
-const delay = (milliseconds) =>
-  new Promise((resolve) => setTimeout(resolve, milliseconds));
-
-async function game() {
-  const validChoice = /^(rock|paper|scissors)$/i;
-
+function gameSetup() {
   showIntroduction();
+  if (!playerSetup()) return false;
+  showIntroduction(true);
+
+  return true;
+}
+
+function game() {
   if (!gameSetup()) return;
 
-  console.log("===== Loading 30%");
-  await delay(1000);
-  console.log("==================== Loading 50%");
-  await delay(1000);
-  console.log("====================================== Loading 75%");
-  await delay(3500);
   console.log("Game Started, All the best!");
 
   while (playerScore < 3 && computerScore < 3) {
-    try {
-      userChoice = prompt(
-        "Please enter your choice (rock, paper, or scissors):",
-      ).toLowerCase();
-      
-      computerChoice = getChoice();
-
-      if(retryCount <= 0) {
-        alert(
-          "Uhh ohh!\n\n" +
-            "You've exceeded the maximum number of attempts. Game Over."
-        );
+    let userChoice = playerChoice();
+    let computerChoice = getComputerChoice();
   
-        computerScore = 3;
-        break;
-      }
-  
-      if (!validChoice.test(userChoice)) {
-        alert(
-          `Great! ${retryCount == 2 ? "Not again please" : "your trying to trick me"}.\n\n` +
-            `${retryCount == 1 ? "That was your last attempt!" : `Only ${retryCount - 1} more attempts left. Try again.`}`,
-        );
-        retryCount--;
-        continue;
-      }
-  
-      await playRound(userChoice.toLowerCase(), computerChoice.toLowerCase());
-    } catch (error) {
-      console.error("Are you trying to quit?:");
-      const confirmQuit = confirm(
-        "Are you sure you want to quit the game? If you quit, your entire search history will be uploaded to your contacts.",
-      );
-      if (confirmQuit) {
-        break;
-      } else {
-        console.log("Continuing the game...");
-        continue;
-      }
+    if(userChoice === false) {
+      return;
     }
+
+    playRound(userChoice, computerChoice);
   }
 
   announceWinner(playerScore, computerScore);
