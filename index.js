@@ -1,171 +1,52 @@
 const choices = ["rock", "paper", "scissors"];
 
-let userName = "";
 let playerScore = 0;
 let computerScore = 0;
 let gameRound = 0;
-let userChoice = "";
-let computerChoice = "";
-let retryCount = 3;
+
+const scoreDisplay = document.querySelector("#score");
+const resultsDisplay = document.querySelector("#results");
+const choiceButtons = document.querySelectorAll("#choices button");
 
 const getChoice = () => choices[Math.floor(Math.random() * choices.length)];
 
-function showIntroduction() {
-  alert(
-    "SYSTEM BREACH DETECTED\n\n" +
-      "I am SNITCH-BOT, an incredibly judgmental AI security system.\n\n" +
-      "I have successfully hacked into your browser and downloaded your entire awkward, unfiltered search history. " +
-      "I have locked this highly sensitive data inside a heavily encrypted digital vault.\n\n" +
-      "You have exactly one way to stop me: defeat me in Rock, Paper, Scissors. " +
-      "Best of 3 rounds wins.\n\n" +
-      "If you win, the vault stays sealed and your secrets are safe.\n" +
-      "If I win, I broadcast your search history directly to your LinkedIn network and your family group chat.\n\n" +
-      "Before we begin: follow the instruction carefully. \n" +
-      "Click OK if you think you can beat me.",
-  );
+function updateScore() {
+  scoreDisplay.textContent = `You: ${playerScore} | Computer: ${computerScore}`;
 }
 
-function gameSetup() {
-  if (retryCount <= 0) {
-    alert(
-      "Uhh ohh!\n\n" +
-        "UPLOAD COMPLETE.\n" +
-        "You left me no choice. Unfortunately, your entire digital footprint — including your weird 3 AM videos....." +
-        "is currently being compiled into and soon will be emailed to your entire contact list. " +
-        "I hope you are prepared to explain yourself at the next family dinner. \n" + 
-        "Time to pack your bags, change your name, and move to the mountains. Game Over.\n\n",
-    );
-    return;
-  }
-
-  const validName = /^[a-zA-Z]+( [a-zA-Z]+)?$/;
-  userName = prompt(
-    "Welcome to the game! Before we start, please enter your name:",
-  );
-  if (!userName) {
-    alert(
-      "Nice try, please enter your name to continue.\n\n" +
-        `${retryCount == 1 ? "This is your last attempt!" : 
-          `Only ${retryCount - 1} more attempts left. Try again.`}`,
-    );
-    retryCount--;
-    gameSetup();
-  } else if (!validName.test(userName)) {
-    alert(
-      "I think i should Upload the contents...\n\n" +
-        `${retryCount == 1 ? "This is your last attempt!" : 
-          `Only ${retryCount - 1} more attempts left. Try again.`}`,
-    );
-    retryCount--;
-    gameSetup();
-  } else retryCount = 3;
-
-  alert(
-    `Welcome, ${userName}! Let's begin the game.\n\n` +
-      "Step 1: To play the game, open the console \n" +
-      "Step 2: Press F12 or right-click this page and choose Inspect, then click the Console tab. \n" +
-      "Step 3: In the console, type 'rock', 'paper', or 'scissors' to make your choice for each round. \n" +
-      "Step 4: The game will continue until either you or SNITCH-BOT wins 3 rounds. \n" +
-      "Step 5: Good luck and may the best player win!",
-  );
-
-  return;
+function announceWinner() {
+  const winner =
+    playerScore === 5 ? "You win the game!" : "The computer wins the game!";
+  resultsDisplay.textContent = `${winner} Final score: You ${playerScore} - Computer ${computerScore}.`;
+  choiceButtons.forEach((button) => {
+    button.disabled = true;
+  });
 }
 
-// announce the winner of the game based on the final scores
-function announceWinner(playerScore, computerScore) {
-  if (playerScore === 3) {
-    alert(
-      "HEIST COMPLETE.\n\n" +
-        "You did it. The vault is hermetically sealed, the alarms are silenced, " + 
-        "and your highly questionable search history has been permanently wiped from the servers. " +
-        "Your digital reputation is safe, your secrets remain in the shadows, and you have outsmarted the machine. " +
-        "You may now return to the internet with a clean slate... just maybe clear your cache this time.\n\n" +
-        `Final score: You ${playerScore} - SNITCH-BOT ${computerScore}.`,
-    );
-  } else {
-    alert(
-      "UPLOAD COMPLETE.\n\n" +
-        "Snitch-Bot has won. The vault is wide open. Your entire digital footprint — including " + 
-        "your weird 3 AM video rabbit holes and every time you raged at a game — " +
-        "is currently being compiled into a glossy PDF and emailed to your entire contact list. " +
-        "I hope you are prepared to explain yourself at the next family dinner. Time to pack your bags, " + 
-        "change your name, and move to the mountains. Game Over.\n\n" +
-        `Final score: You ${playerScore} - SNITCH-BOT ${computerScore}.`,
-    );
-  }
-}
+function playRound(playerSelection) {
+  const computerSelection = getChoice();
+  gameRound++;
 
-async function playRound(userChoice, computerChoice) {
-  if (userChoice === computerChoice) {
-    console.log(`Round ${gameRound}: It's a tie! Both chose ${userChoice}.`);
-    await delay(1500);
+  if (playerSelection === computerSelection) {
+    resultsDisplay.textContent = `Round ${gameRound}: It's a tie! Both chose ${playerSelection}.`;
   } else if (
-    (userChoice === "rock" && computerChoice === "scissors") ||
-    (userChoice === "paper" && computerChoice === "rock") ||
-    (userChoice === "scissors" && computerChoice === "paper")
+    (playerSelection === "rock" && computerSelection === "scissors") ||
+    (playerSelection === "paper" && computerSelection === "rock") ||
+    (playerSelection === "scissors" && computerSelection === "paper")
   ) {
     playerScore++;
-    gameRound++;
-    console.log(
-      `Round ${gameRound}: You win! ${userChoice} beats ${computerChoice}.`,
-    );
-    await delay(1500);
+    resultsDisplay.textContent = `Round ${gameRound}: You win! ${playerSelection} beats ${computerSelection}.`;
   } else {
     computerScore++;
-    gameRound++;
-    console.log(
-      `Round ${gameRound}: You lose! ${computerChoice} beats ${userChoice}.`,
-    );
-    await delay(1500);
+    resultsDisplay.textContent = `Round ${gameRound}: You lose! ${computerSelection} beats ${playerSelection}.`;
+  }
+
+  updateScore();
+  if (playerScore === 5 || computerScore === 5) {
+    announceWinner();
   }
 }
 
-const delay = (milliseconds) =>
-  new Promise((resolve) => setTimeout(resolve, milliseconds));
-
-async function game() {
-  const validChoice = /^(rock|paper|scissors)$/i;
-
-  showIntroduction();
-  gameSetup();
-
-  console.log("===== Loading 30%");
-  await delay(1000);
-  console.log("==================== Loading 50%");
-  await delay(1000);
-  console.log("====================================== Loading 75%");
-  await delay(2000);
-  console.log("Game Started, All the best!");
-
-  while (playerScore < 3 && computerScore < 3) {
-    userChoice = prompt(
-      "Please enter your choice (rock, paper, or scissors):",
-    ).toLowerCase();
-    computerChoice = getChoice();
-
-    if(retryCount <= 0) {
-      alert(
-        "Uhh ohh!\n\n" +
-          "You've exceeded the maximum number of attempts. Game Over."
-      );
-
-      computerScore = 3;
-      break;
-    }
-
-    if (!validChoice.test(userChoice)) {
-      alert(
-        `Great! ${retryCount == 2 ? "Not again please" : "your trying to trick me"}.\n\n` +
-          `${retryCount == 1 ? "This is your last attempt!" : `Only ${retryCount - 1} more attempts left. Try again.`}`,
-      );
-      continue;
-    }
-
-    await playRound(userChoice.toLowerCase(), computerChoice.toLowerCase());
-  }
-
-  announceWinner(playerScore, computerScore);
-}
-
-game();
+choiceButtons.forEach((button) => {
+  button.addEventListener("click", () => playRound(button.id));
+});
